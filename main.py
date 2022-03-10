@@ -35,14 +35,17 @@ mydb = mysql.connector.connect(
   database="worldcities"
 )
 
-latitude = 46.042350
-longitude = 14.525659
-coords_1 = (46.04608294880105, 14.490898440338853)
+latitude = 45.920500
+longitude = 14.509161
+coords_1 = (46.046082, 14.490898)
 mycursor = mydb.cursor()
 
+final_latitude = 53.350967
+final_longitude = 8.530810
 
-final_latitude = 48.186067
-final_longitude = 16.398912
+city_cords = str(latitude) + ', ' + str(longitude)
+end_cords = str(final_latitude) + ', ' + str(final_longitude)
+
 
 la = latitude - final_latitude
 lo = longitude - final_longitude
@@ -60,9 +63,8 @@ if (lo > 0):
 else:
     o_znak = '<='
 
-
-for x in range(0, 10):
-    mycursor.execute("SELECT city, lat, lng FROM city WHERE ((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) <= 100)", (latitude, latitude, longitude))
+while(geopy.distance.distance(city_cords, end_cords).km > 100):
+    mycursor.execute("SELECT city, lat, lng FROM city WHERE ((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) <= 150)", (latitude, latitude, longitude))
 
     print('Current latitude:'+str(latitude)+' Current longitude: '+str(longitude))
 
@@ -72,9 +74,11 @@ for x in range(0, 10):
         city = row[0]
         city_latitude = row[1]
         city_longitude = row[2]
+        city_cords = str(city_latitude) + ', ' + str(city_longitude)
+
         #print(str(test)+str(city))
         #if((test == city) or ((la>0) and city_latitude > latitude ))or((la<0 and city_latitude < latitude ))or((lo>0 and city_longitude > longitude ))or((lo<0 and city_longitude < longitude )):
-        if (test == city) or ((la > 0) and city_latitude > latitude) or ((la > 0) and city_latitude < final_latitude) or ((la < 0) and city_latitude > final_latitude) or ((la < 0) and city_latitude < latitude)or((lo > 0) and city_longitude > longitude)or((lo > 0) and city_longitude < final_longitude)or((lo < 0) and city_longitude > final_longitude)or((lo < 0) and city_longitude < longitude):
+        if (test == city) or ((la > 0) and city_latitude > (latitude - 0.5)) or ((la > 0) and city_latitude < (final_latitude - 0.5)) or ((la < 0) and city_latitude > (final_latitude + 0.5)) or ((la < 0) and city_latitude < (latitude + 0.5))or((lo > 0) and city_longitude > (longitude + 2))or((lo > 0) and city_longitude < (final_longitude + 2))or((lo < 0) and city_longitude > (final_longitude - 2))or((lo < 0) and city_longitude < (longitude - 2)):
             continue
         else:
             complete_url = base_url + "appid=" + api_key + "&q=" + city
