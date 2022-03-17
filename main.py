@@ -34,37 +34,40 @@ mydb = mysql.connector.connect(
   password="admin",
   database="worldcities"
 )
-
+test = ''
 latitude = 45.920500
 longitude = 14.509161
 coords_1 = (46.046082, 14.490898)
 mycursor = mydb.cursor()
 
-final_latitude = 53.350967
-final_longitude = 8.530810
+final_latitude = 39.347962
+final_longitude = 22.424239
 
-city_cords = str(latitude) + ', ' + str(longitude)
-end_cords = str(final_latitude) + ', ' + str(final_longitude)
+#final_latitude = final_latitude + 0.5
+#final_longitude = final_longitude + 2
+
+
 
 
 la = latitude - final_latitude
 lo = longitude - final_longitude
 
 if (la>0):
-    a_znak = '<='
-
+    final_latitude = final_latitude - 0.5
 else:
-    a_znak = '>='
-
+    final_latitude = final_latitude + 0.5
 
 if (lo > 0):
-    o_znak = '>='
-
+    final_longitude = final_longitude - 2
 else:
-    o_znak = '<='
+    final_longitude = final_longitude + 2
 
-while(geopy.distance.distance(city_cords, end_cords).km > 100):
-    mycursor.execute("SELECT city, lat, lng FROM city WHERE ((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) <= 150)", (latitude, latitude, longitude))
+
+city_cords = str(latitude) + ', ' + str(longitude)
+end_cords = str(final_latitude) + ', ' + str(final_longitude)
+
+while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city):
+    mycursor.execute("SELECT city, lat, lng FROM city WHERE (((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) <= 150) AND ((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) > 100))", (latitude, latitude, longitude, latitude, latitude, longitude))
 
     print('Current latitude:'+str(latitude)+' Current longitude: '+str(longitude))
 
@@ -78,7 +81,7 @@ while(geopy.distance.distance(city_cords, end_cords).km > 100):
 
         #print(str(test)+str(city))
         #if((test == city) or ((la>0) and city_latitude > latitude ))or((la<0 and city_latitude < latitude ))or((lo>0 and city_longitude > longitude ))or((lo<0 and city_longitude < longitude )):
-        if (test == city) or ((la > 0) and city_latitude > (latitude - 0.5)) or ((la > 0) and city_latitude < (final_latitude - 0.5)) or ((la < 0) and city_latitude > (final_latitude + 0.5)) or ((la < 0) and city_latitude < (latitude + 0.5))or((lo > 0) and city_longitude > (longitude + 2))or((lo > 0) and city_longitude < (final_longitude + 2))or((lo < 0) and city_longitude > (final_longitude - 2))or((lo < 0) and city_longitude < (longitude - 2)):
+        if (test == city) or ((la > 0) and city_latitude > (latitude)) or ((la > 0) and city_latitude < (final_latitude)) or ((la < 0) and city_latitude > (final_latitude)) or ((la < 0) and city_latitude < (latitude))or((lo > 0) and city_longitude > (longitude))or((lo > 0) and city_longitude < (final_longitude))or((lo < 0) and city_longitude > (final_longitude))or((lo < 0) and city_longitude < (longitude)):
             continue
         else:
             complete_url = base_url + "appid=" + api_key + "&q=" + city
