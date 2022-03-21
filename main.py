@@ -8,6 +8,13 @@ import requests, json
 api_key = "72c6bd207cc81e4fe9717a0a3d616548"
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
 
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import Point, LineString
+#import plotly_express as px
+import networkx as nx
+import osmnx as ox
+ox.config(use_cache=True, log_console=True)
 
 
 #import pandas as pd
@@ -84,6 +91,7 @@ while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city):
         if (test == city) or ((la > 0) and city_latitude > (latitude)) or ((la > 0) and city_latitude < (final_latitude)) or ((la < 0) and city_latitude > (final_latitude)) or ((la < 0) and city_latitude < (latitude))or((lo > 0) and city_longitude > (longitude))or((lo > 0) and city_longitude < (final_longitude))or((lo < 0) and city_longitude > (final_longitude))or((lo < 0) and city_longitude < (longitude)):
             continue
         else:
+
             complete_url = base_url + "appid=" + api_key + "&q=" + city
             response = requests.get(complete_url)
             x = response.json()
@@ -127,6 +135,16 @@ while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city):
                     print(city)
                     break
 
+def create_graph(loc, dist, transport_mode, loc_type="address"):
+    """Transport mode = ‘walk’, ‘bike’, ‘drive’, ‘drive_service’, ‘all’, ‘all_private’, ‘none’"""
+    if loc_type == "address":
+            G = ox.graph_from_address(loc, dist=dist, network_type=transport_mode)
+    elif loc_type == "points":
+            G = ox.graph_from_point(loc, dist=dist, network_type=transport_mode )
+    return G
+
+G = create_graph("Gothenburg", 2500, "drive")
+ox.plot_graph(G)
 
 
 
