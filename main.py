@@ -4,6 +4,8 @@ import sqlite3
 import mysql.connector
 import geopy.distance
 import requests, json
+from numpy import char
+from numpy.core.defchararray import upper
 
 api_key = "72c6bd207cc81e4fe9717a0a3d616548"
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
@@ -13,8 +15,6 @@ import geopandas as gpd
 from shapely.geometry import Point, LineString
 #import plotly_express as px
 import networkx as nx
-import osmnx as ox
-ox.config(use_cache=True, log_console=True)
 
 
 #import pandas as pd
@@ -29,7 +29,6 @@ ox.config(use_cache=True, log_console=True)
 
 import mysql.connector
 import pandas as pd
-from Tools.scripts.dutree import display
 
 city = []
 city_latitude = []
@@ -41,20 +40,47 @@ mydb = mysql.connector.connect(
   password="admin",
   database="worldcities"
 )
-test = ''
-latitude = 45.920500
-longitude = 14.509161
-coords_1 = (46.046082, 14.490898)
 mycursor = mydb.cursor()
+startingCity = (input("Enter your starting city: "))
+startingCity = startingCity.upper()
+endingCity = (input("Enter your destination city: "))
+endingCity = endingCity.upper()
 
-final_latitude = 39.347962
-final_longitude = 22.424239
+#get coordinates of starting city from database
+mycursor.execute("SELECT * FROM city WHERE UPPER(city) = '" + startingCity + "'")
 
-#final_latitude = final_latitude + 0.5
-#final_longitude = final_longitude + 2
+mesta = mycursor.fetchall()
+for row in mesta:
+    print("To je mesto zacetek: ", row[1])
+    latitude = row[3]
+    longitude = row[4]
+    #convert string to float
+    latitude = float(latitude)
+    longitude = float(longitude)
+
+
+mycursor.execute("SELECT * FROM city WHERE UPPER(city) = '" + endingCity + "'")
+
+mesta = mycursor.fetchall()
+for row in mesta:
+    print("To je mesto konec: ", row[1])
+    final_latitude = row[3]
+    final_longitude = row[4]
+    
+    final_latitude = float(final_latitude)
+    final_longitude = float(final_longitude)
 
 
 
+
+test = ''
+#latitude = 45.920500
+#longitude = 14.509161
+#coords_1 = (46.046082, 14.490898)
+
+
+#final_latitude = 39.347962
+#final_longitude = 22.424239
 
 la = latitude - final_latitude
 lo = longitude - final_longitude
@@ -135,16 +161,6 @@ while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city):
                     print(city)
                     break
 
-def create_graph(loc, dist, transport_mode, loc_type="address"):
-    """Transport mode = ‘walk’, ‘bike’, ‘drive’, ‘drive_service’, ‘all’, ‘all_private’, ‘none’"""
-    if loc_type == "address":
-            G = ox.graph_from_address(loc, dist=dist, network_type=transport_mode)
-    elif loc_type == "points":
-            G = ox.graph_from_point(loc, dist=dist, network_type=transport_mode )
-    return G
-
-G = create_graph("Gothenburg", 2500, "drive")
-ox.plot_graph(G)
 
 
 
