@@ -15,7 +15,7 @@ import geopandas as gpd
 from shapely.geometry import Point, LineString
 #import plotly_express as px
 import networkx as nx
-
+import webbrowser
 
 #import pandas as pd
 
@@ -50,8 +50,13 @@ endingCity = endingCity.upper()
 mycursor.execute("SELECT * FROM city WHERE UPPER(city) = '" + startingCity + "'")
 
 mesta = mycursor.fetchall()
+#check if starting city exists
+if(len(mesta) == 0):
+    print("Starting city does not exist")
+    exit()
 for row in mesta:
-    print("To je mesto zacetek: ", row[1])
+    mestoStart = row[1]
+    #print("To je mesto zacetek: ", row[1])
     latitude = row[3]
     longitude = row[4]
     #convert string to float
@@ -62,8 +67,12 @@ for row in mesta:
 mycursor.execute("SELECT * FROM city WHERE UPPER(city) = '" + endingCity + "'")
 
 mesta = mycursor.fetchall()
+if(len(mesta) == 0):
+    print("Destination city does not exist")
+    exit()
 for row in mesta:
-    print("To je mesto konec: ", row[1])
+    mestoKonec = row[1]
+    #print("To je mesto konec: ", row[1])
     final_latitude = row[3]
     final_longitude = row[4]
     
@@ -71,7 +80,7 @@ for row in mesta:
     final_longitude = float(final_longitude)
 
 
-
+final = []
 
 test = ''
 #latitude = 45.920500
@@ -99,10 +108,10 @@ else:
 city_cords = str(latitude) + ', ' + str(longitude)
 end_cords = str(final_latitude) + ', ' + str(final_longitude)
 
-while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city):
+while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city or len(final) > 6):
     mycursor.execute("SELECT city, lat, lng FROM city WHERE (((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) <= 150) AND ((((acos(sin(( %s *pi()/180)) * sin((lat*pi()/180)) + cos(( %s *pi()/180)) * cos((lat*pi()/180)) * cos((( %s - lng) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344) > 100))", (latitude, latitude, longitude, latitude, latitude, longitude))
 
-    print('Current latitude:'+str(latitude)+' Current longitude: '+str(longitude))
+    #print('Current latitude:'+str(latitude)+' Current longitude: '+str(longitude))
 
     myresult = mycursor.fetchall()
     test = city
@@ -117,49 +126,75 @@ while(geopy.distance.distance(city_cords, end_cords).km > 300 and test != city):
         if (test == city) or ((la > 0) and city_latitude > (latitude)) or ((la > 0) and city_latitude < (final_latitude)) or ((la < 0) and city_latitude > (final_latitude)) or ((la < 0) and city_latitude < (latitude))or((lo > 0) and city_longitude > (longitude))or((lo > 0) and city_longitude < (final_longitude))or((lo < 0) and city_longitude > (final_longitude))or((lo < 0) and city_longitude < (longitude)):
             continue
         else:
-
             complete_url = base_url + "appid=" + api_key + "&q=" + city
             response = requests.get(complete_url)
+            
+            
             x = response.json()
             if x["cod"] != "404":
                 y = x["main"]
                 z = x["weather"]
                 weather_description = z[0]["main"]
+                
                 if(weather_description == 'Clear'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
                 elif(weather_description == 'Clouds'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
                 elif (weather_description == 'Drizzle'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
                 elif (weather_description == 'Rain'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
                 elif (weather_description == 'Thunderstorm'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
                 elif (weather_description == 'Snow'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
                 elif (weather_description == 'Atmosphere'):
                     latitude = city_latitude
                     longitude = city_longitude
-                    print(city)
+                    final.append(city)
+                    #print(city)
                     break
+
+
+final.append(mestoKonec)
+print(final)
+url = mestoStart
+#add every item from final list to url with '/' in between
+for i in final:
+    url = url + '/' + i
+print(url)
+
+
+webbrowser.open('https://www.google.com/maps/dir/' + url)
+#display google maps route between coordinates on index.html
+#https://www.google.com/maps/dir/Ljubljana/Zagreb/Bijeljina/Sarajevo
+
+
+
 
 
 
